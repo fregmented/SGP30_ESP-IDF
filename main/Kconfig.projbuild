@@ -1,0 +1,18 @@
+menu "SGP30 Example"
+
+config USING_SEMAPHORE
+    bool "Using semaphore"
+
+config I2C_SPEED
+    int "I2C speed in kHz"
+    default 100
+
+config I2C_SDA
+    int "I2C SDA port"
+    default 21
+
+config I2C_SCL
+    int "I2C SCL port"
+    default 22
+
+endmenu
