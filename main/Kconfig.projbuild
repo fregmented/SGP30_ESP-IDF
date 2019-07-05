@@ -1,8 +1,5 @@
 menu "SGP30 Example"
 
-config USING_SEMAPHORE
-    bool "Using semaphore"
-
 config I2C_SPEED
     int "I2C speed in kHz"
     default 100
