@@ -98,8 +98,8 @@ static void sgpBaselineTask(void* pvParams) {
                 }
             } else {
                 ESP_LOGE(__func__, "SGP BASELINE CORRECTION INFO IS WRONG");
-                nvs_close(nvsHandle);
             }
+            nvs_close(nvsHandle);
         }
     }
 }
