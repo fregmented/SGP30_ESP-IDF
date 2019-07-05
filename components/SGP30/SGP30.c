@@ -287,7 +287,6 @@ esp_err_t sgp30_GetSerialID() {
 esp_err_t sgp30_ReadRawSignal() {
     esp_err_t err;
     if((err = sgp30_SendCommand(SGP_CMD_GET_RAW_SIGNAL)) != ESP_OK) {
-//        ESP_LOGE(TAG, "Data read failed: %04X", err);
         return err;
     }
 
@@ -296,7 +295,6 @@ esp_err_t sgp30_ReadRawSignal() {
     uint8_t* data = (uint8_t*)calloc(sizeof(uint8_t), 6);
     err = sgp30_ReadFromI2C(data, 6);
     if(err != ESP_OK) {
-//        ESP_LOGE(TAG, "I2C Read failed 0x%04X", err);
         free(data);
         return err;
     }
@@ -332,7 +330,6 @@ esp_err_t sgp30_Reset() {
     ret = i2c_master_cmd_begin(spg30_param.i2c_port, i2c_cmd, 1000 / portTICK_RATE_MS);
     i2c_cmd_link_delete(i2c_cmd);
     if(ret != ESP_OK) {
-//        ESP_LOGE(TAG, "I2C Write failed 0x%04X", ret);
         return ret;
     }
     return ret;

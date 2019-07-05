@@ -83,20 +83,159 @@ static const uint8_t Sensirion_CRC8LookupTable[16][16] = {
 };
 #endif
 
+/**
+ * Initialize SGP30 and library.
+ * @param params sgp30_param_t
+ *     - using_library_i2c if true, initialize i2c driver in library. if false, must initialize i2c driver outside of library
+ *     - sda data pin for I²C
+ *     - scl clock pin for I²C
+ *     - i2c_port i2c port number, defined in i2c.h
+ *     - i2c_freq_hz i2c clock speed maximum SGP30_MAX_I2C_MASTER_FREQ_HZ
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - ESP_ERR_INVALID_ARG Invalid parameter value.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_Init(sgp30_param_t params);
+
+/**
+ * Read TVOC data and eCO2 data.
+ * Data will saved in sgp30_Data.
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_ReadData();
+
+/**
+ * Measurement initialize.
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_InitMeasure();
+
+/**
+ * Get SGP30 calibration baseline data.
+ * Data will saved in sgp30_Data.
+ * This method MUST call every 12hours and save baseline data into NVS.
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_GetBaseline();
+
+/**
+ * Set SGP30 calibration baseline data.
+ * This method MUST call every Power on Reset. Otherwise, all measured data will invalid until the SGP30 has been calibrated for 12 hours.
+ * @param tVoC
+ * @param eCO2
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_SetBaseline(uint16_t tVoC, uint16_t eCO2);
+
+/**
+ * Set absolute humidity.
+ * this method MUST call when humidity is changed over 10%.
+ * calculation:
+ * double eSat = 6.11 * pow(10.0, (7.5 * tempInCelsius / (237.7 + tempInCelsius)));
+ * double vaporPressure = (relativeHumidity * eSat) / 100; //millibars
+ * double absHumidity = 1000 * vaporPressure * 100 / ((tempInCelsius + 273) * 461.5);
+ *
+ * @param absoluteHumidity
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_SetHumidity(double absoluteHumidity);
+
+/**
+ * Do self test for SGP30.
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_SelfTest();
+
+/**
+ * Get hardware version of SGP30
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_GetFeatureSetVersion();
+
+/**
+ * Get hardware serial ID of SGP30
+ * Data will saved in sgp30_Data
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_GetSerialID();
+
+/**
+ * Read Raw material data(H2 and ethanol).
+ * Data will saved in sgp30_Data
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ *     - SGP30_ERR_BAD_CRC CRC if not matched.
+ */
 esp_err_t sgp30_ReadRawSignal();
+
+/**
+ * Send General Call Reset(0x06)
+ * @return I2C command result
+ *     - ESP_OK Success
+ *     - ESP_ERR_INVALID_ARG Parameter error
+ *     - ESP_FAIL Sending command error, slave doesn't ACK the transfer.
+ *     - ESP_ERR_INVALID_STATE I2C driver not installed or not in master mode.
+ *     - ESP_ERR_TIMEOUT Operation timeout because the bus is busy.
+ */
 esp_err_t sgp30_Reset();
 
-
-void sgp30_SetLogLevel(esp_log_level_t log_level);
 
 #if defined(__cplusplus)
 }
